@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1ba5e8fa-e0ae-4a92-a16d-c8b42f7d674c" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="2e03ca8c-c871-45a3-88ac-33f84245e577" sendCorrelationId="NEVER" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://localhost:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="abcdcompanyapp2Flow" doc:id="ef710106-7a1a-4748-8102-b7309a925a4b" >
+		<http:listener doc:name="Listener" doc:id="4f51d378-3666-4cc8-946a-67f8f6f7566d" config-ref="HTTP_Listener_config" path="/read2"/>
+		<jms:consume doc:name="Consume" doc:id="67dc950c-3770-4af4-a470-9551d05e628e" config-ref="JMS_Config" destination="ABCDcompany"/>
+		<logger level="INFO" doc:name="Logger" doc:id="257da1e2-23ef-4395-a5c0-3e4e3a419ebf" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="142b1ff6-9457-40d5-b7fb-09a2cf5e901e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(("Transaction _date" :$.Transaction_date splitBy (" ") )++
+	("Product" : $.Product)++
+	( if( $.Price == "1200") {"Price" : $.Price} else {}) ++
+	(if( ($.Country == "United States") or ($.Country == "Canada") or ($.Country == "Spain")) (if( $.Payment_Type == "Mastercard") {"Country" : $.Country}  else {} )  else{} )
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="19f572d9-680c-43e5-80a6-c97c5e0455be" message="#[payload]"/>
+	</flow>
+</mule>
