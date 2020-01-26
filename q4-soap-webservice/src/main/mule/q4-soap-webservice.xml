@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c05fd536-ff65-42ea-8fbe-ea960a3bf07c" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="1856a126-9151-4452-ac47-41d7ad651956" >
+		<wsc:connection wsdlLocation="http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL" service="CountryInfoService" port="CountryInfoServiceSoap" address="http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso" />
+	</wsc:config>
+	<flow name="q4-soap-webserviceFlow" doc:id="5f911c34-797c-4119-a3ea-12cd6eee0305" >
+		<http:listener doc:name="Listener" doc:id="5d9a9e5e-ff62-4352-a8dd-521f717a651d" config-ref="HTTP_Listener_config" path="/soapdata"/>
+		<wsc:consume operation="ListOfCountryNamesGroupedByContinent" doc:id="6b2a18c8-5d08-4696-872a-ede072da7ab6" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="2b20bfdb-ac60-4358-ba93-b30f5324c4c1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="014e6534-a719-430f-9319-967db84cd72c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.ListOfCountryNamesGroupedByContinentResponse.ListOfCountryNamesGroupedByContinentResult.*tCountryCodeAndNameGroupedByContinent.Continent ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="q4-soap-webserviceFlow1" doc:id="af071429-90ef-4cc2-878e-ade4bbd80a32" >
+		<http:listener doc:name="Listener" doc:id="b381462e-4b64-4668-afd4-04bf95eac0f7" config-ref="HTTP_Listener_config" path="/soap2"/>
+		<wsc:consume doc:name="Consume" doc:id="23490cc0-598c-4d88-9caf-454d47dcc53e" config-ref="Web_Service_Consumer_Config" operation="FullCountryInfoAllCountries"/>
+		<ee:transform doc:name="Transform Message" doc:id="6a21d276-b15a-4a53-b7c6-5b0bf6cf4922" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
