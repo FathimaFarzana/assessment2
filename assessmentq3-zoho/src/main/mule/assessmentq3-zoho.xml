@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="99c36a4f-86d9-41b6-83f7-91550952d934" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="ddae5576-d123-4281-870e-af89127781bf" >
+		<email:smtp-connection host="smtp.gmail.com" user="fathima.farzana@apisero.com" password="firoz3011" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="9d190b29-8f68-4df0-93f0-35e31544d951" >
+		<http:request-connection protocol="HTTPS" host="meeting.zoho.com"/>
+	</http:request-config>
+	<flow name="assessmentq3-zohoFlow" doc:id="51888c0a-ee2b-4b19-a0ad-d0bbe94bf19d" >
+		<http:listener doc:name="Listener" doc:id="d841285e-334c-4628-8644-c8f1042c5840" path="/zmeeting" config-ref="HTTP_Listener_config"/>
+		<http:request method="POST" doc:name="createMeetingId" doc:id="61add75d-b68d-4044-a88a-563552294699" config-ref="HTTP_Request_configuration" path="/api/private/json/meetings/createMeeting?">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"date" : "2019-01-27 09:00",
+	"topic" : "induction prgm",
+	"apikey" : "1c55d0b2ce8b0130ddf34506364aabc5",
+	"authtoken" : "5c749c1877edf27bf09fa1d36f98ecaf"
+}]]]></http:query-params>
+		</http:request>
+		<http:request method="GET" doc:name="InviteParticipants" doc:id="68292eae-4e9e-4d39-bdb9-27ee4a2100a3" config-ref="HTTP_Request_configuration" path="/api/private/json/meetings/inviteParticipant?">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"meetingKey" : "1032553165",
+	"inviteeMailId" : "fathima.farzana@apisero.com,zananourin2000@gmail.com",
+	"sendMail" : "yes",
+	"apikey" : "1c55d0b2ce8b0130ddf34506364aabc5",
+	"authtoken" : "5c749c1877edf27bf09fa1d36f98ecaf"
+}]]]></http:query-params>
+		</http:request>
+		<email:send doc:name="Send" doc:id="ff57c374-bd2d-46df-a75d-78c78462af87" config-ref="Email_SMTP" fromAddress="fathima.farzana@apisero.com" subject="Meeting Invitation">
+			<email:to-addresses >
+				<email:to-address value="fathima.farzana@apisero.com" />
+			</email:to-addresses>
+			<email:body contentTransferEncoding="Quoted-Printable">
+			</email:body>
+		</email:send>
+	</flow>
+</mule>
