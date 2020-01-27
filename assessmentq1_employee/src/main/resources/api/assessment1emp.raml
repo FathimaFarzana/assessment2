@@ -1,0 +1,63 @@
+#%RAML 1.0
+title: assessment1emp
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/e6217e23-1e07-4096-8378-59397c6e37d2/ # baseUri: 
+
+/employee:
+  /postall:
+    post:
+       responses:
+        200:
+          body:
+            application/json:
+              example:
+                {
+                  "id"  : 1,
+                  "employee_name" : "Tiger Nixon",
+                  "employee_salary" : "320800",
+                  "employee_age" : "61",
+                  "profile_image" : ""
+                }
+  /passpayload:
+    post:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                {
+                "id"  : 1,
+                "employee_name" : "Tiger Nixon",
+                "employee_salary" : "320800",
+                "employee_age" : "61",
+                "profile_image" : ""
+                }              
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              {
+                "id"  : 1,
+                "employee_name" : "Tiger Nixon",
+                "employee_salary" : "320800",
+                "employee_age" : "61",
+                "profile_image" : ""
+                }  
+  /{id}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                {
+                  "id"  : 1,
+                  "employee_name" : "Tiger Nixon",
+                  "employee_salary" : "320800",
+                  "employee_age" : "61",
+                  "profile_image" : ""
+                  }           
+      
+
+    

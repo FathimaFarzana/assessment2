@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d9bbbbab-c0ea-4e50-a993-226de81948fc" >
+		<http:request-connection port="8082" host="dummy.restapiexample.com"/>
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f5e71614-681f-41da-aa70-b82025dffd67" >
+		<db:my-sql-connection host="db4free.net" port="3306" user="fathima" password="fathima_22" database="databasefathima" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="c7ef4b48-4df1-4c94-babd-cc51891f59b1" >
+		<email:smtp-connection host="smtp.gmail.com" user="fathima.farzana@apisero.com" password="firoz3011" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="postalldata" doc:id="b91f0319-1c92-4afe-8de9-48dbbb678fb4" >
+		<http:request method="GET" doc:name="Request" doc:id="9e67787e-b567-4556-9d57-f972b75506f4" config-ref="HTTP_Request_configuration" url="http://dummy.restapiexample.com/api/v1/employees" />
+		<ee:transform doc:name="Transform Message" doc:id="6fbf6734-85c5-4a05-a8d5-fe5dd6d21a5a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="4d148bc0-142a-447b-a4ab-337f14faadf0" message="before batch"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="9a4bf366-8618-4b34-8251-9075b26f1e9f" >
+			<route >
+				<db:bulk-insert doc:name="Bulk insert" doc:id="487055a8-a89f-4b69-ac36-c1fed9e219f8" config-ref="Database_Config">
+			<db:sql>INSERT INTO emp1 (id, employee_name, employee_salary, employee_age, profile_image) 	values (:id, :employee_name, :employee_salary, :employee_age, :profile_image)</db:sql>
+		</db:bulk-insert>
+			</route>
+			<route >
+				<email:send doc:name="Send" doc:id="b83ff2a8-28d8-4c93-b5f4-16ea76150d50" config-ref="Email_SMTP" fromAddress="fathima.farzana@apisero.com">
+			<email:to-addresses>
+				<email:to-address value="fathima.farzana@apisero.com" />
+			</email:to-addresses>
+		</email:send>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="Logger" doc:id="e6d8269f-f28b-41c6-b034-f03ed21088c7" message="insertion over"/>
+	</flow>
+</mule>
